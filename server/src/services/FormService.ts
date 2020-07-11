@@ -1,5 +1,5 @@
 import pg from 'pg';
-import {ResourceNotFoundError, ApiError} from 'src/exceptions';
+import {ResourceNotFoundError, ApiError} from '../exceptions';
 import Ajv from 'ajv';
 import deepmerge from 'deepmerge';
 
@@ -14,12 +14,12 @@ export class PublicFormService {
         let data = form.data || {};
         if (currentData && typeof currentData === 'object') {
             
-            const ajv = new Ajv();
-            const valid = ajv.validate(form.schema, currentData);
-            if (!valid) { 
-                // TODO throw real error
-                throw new ApiError('form.invalid.defData', 409, { def: currentData, errors: ajv.errors });
-            }
+            //const ajv = new Ajv();
+            //const valid = ajv.validate(form.schema, currentData);
+            //if (!valid) { 
+                //// TODO throw real error
+                //throw new ApiError('form.invalid.defData', 409, { def: currentData, errors: ajv.errors });
+            //}
             data = deepmerge(data, currentData);
 
         }
@@ -32,25 +32,26 @@ export class PublicFormService {
         }
     }
 
-    async submitForm(id: string, body: unknown) {
+    async submitForm(id: string, body: { source: string, data: unknown }) {
 
 
-        if (!body || typeof body !== 'object') {
+        if (!body || typeof body !== 'object' 
+            || !body.data || typeof body.data !== 'object'
+            || !body.source || typeof body.source !== 'string'
+        ) {
             throw new ApiError('form.invalid.body', 409, { body });
         }
 
         const form = await this.loadForm(id);
         const ajv = new Ajv();
-        const valid = ajv.validate(form.schema, body);
+        const valid = ajv.validate(form.schema, body.data);
         if (!valid) { 
-            // TODO throw real error
-            console.log(ajv.errors);
             throw new ApiError('form.invalid.form', 409, { body, errros: ajv.errors });
         }
 
-        const QUERY = `INSERT INTO responses (form_id, form_version, data) VALUES ($1, $2, $3) RETURNING *`;
+        const QUERY = `INSERT INTO response (form_id, form_version, data, source) VALUES ($1, $2, $3, $4) RETURNING *`;
         try {
-            const queryResult = await this.db.query(QUERY, [form.id, form.version, body]);
+            const queryResult = await this.db.query(QUERY, [form.id, form.version, body.data, body.source]);
 
             return {
                 responseId: queryResult.rows[0].id
@@ -64,7 +65,7 @@ export class PublicFormService {
 
     private async loadForm(id: string): Promise<{ id: string, schema: object, data: object | undefined, version: number }> {
 
-        const QUERY = `SELECT version, schema, def FROM forms WHERE id = $1`;
+        const QUERY = `SELECT version, schema, def FROM form WHERE id = $1`;
         const queryResult = await this.db.query(QUERY, [id])
 
         if (!queryResult.rows.length) {

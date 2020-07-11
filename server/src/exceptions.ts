@@ -1,11 +1,5 @@
 
 
-export class ResourceNotFoundError extends Error {
-
-    constructor(private resource: string, private identifier: unknown) {
-        super(`${resource} not found`);
-    }
-}
 
 export class FormValidationError extends Error {
 
@@ -18,5 +12,12 @@ export class FormValidationError extends Error {
 export class ApiError extends Error {
     constructor(msg: string, public code?: number, public meta?: unknown) {
         super(msg);
+    }
+}
+
+export class ResourceNotFoundError extends ApiError {
+
+    constructor(resource: string, public identifier: unknown) {
+        super(`${resource}.not.found`, 404, { identifier });
     }
 }
