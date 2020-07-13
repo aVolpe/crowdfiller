@@ -1,2 +1,4 @@
 server/dist
 node_modules
+.next
+.idea

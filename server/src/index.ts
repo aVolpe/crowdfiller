@@ -12,22 +12,15 @@ server.use(helmet());
 server.use(cors());
 server.use(express.json());
 
-
 const db = new pg.Pool({
-    host: process.env.PGHOST || 'localhost',
-    port: parseInt(process.env.PGPORT) || 5432,
-    user: process.env.PGUSER || 'crowdfiller',
-    password: process.env.PGPASSWORD || 'crowdfiller',
-    database: process.env.PGDATABASE || 'crowdfiller'
-
+    connectionString: process.env.PGCONN || `postgres://crowdfiller:crowdfiller@localhost:5432/crowdfiller`
 })
 
 
 
-server.use('/api/', buildPublicRouter(db));
 
 server.listen(port, () => console.log(`API listening at http://localhost:${port}`))
 
 // PUBLIC ENDPOINTS
+server.use('/api/', buildPublicRouter(db));
 
-// POST to get a form with default data
