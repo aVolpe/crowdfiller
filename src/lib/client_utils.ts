@@ -24,3 +24,9 @@ export function isErrorInfo(data: ErrorInfo | any): data is ErrorInfo {
     return asErr.code !== undefined
         && asErr.msg !== undefined;
 }
+
+export function getFirst(q: string | string[]): string {
+    return Array.isArray(q)
+        ? q[0]
+        : q;
+}
