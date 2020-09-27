@@ -1,11 +1,11 @@
-import {ResponseRequestBody} from './Model';
+import {ResponseRequestBody, ResponseResultBody} from './Model';
 
 export class ApiClient {
 
     constructor() {
     }
 
-    sendForm(formId: number, data: ResponseRequestBody): Promise<unknown> {
+    sendForm(formId: number, data: ResponseRequestBody): Promise<ResponseResultBody> {
 
         return fetch(`/api/form/${formId}/response`, {
             method: 'POST',

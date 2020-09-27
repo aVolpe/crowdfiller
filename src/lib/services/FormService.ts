@@ -38,23 +38,26 @@ export class PublicFormService {
 
         if (!body || typeof body !== 'object'
             || !body.data || typeof body.data !== 'object'
-            || !body.source || typeof body.source !== 'string'
         ) {
             throw new ApiError('form.invalid.body', 409, {body});
+        }
+
+        if (!body.source) {
+            console.warn(`Form submission without source, ${id}`, body)
         }
 
         const form = await this.loadForm(id);
         const ajv = new Ajv();
         const valid = ajv.validate(form.schema, body.data);
         if (!valid) {
-            throw new ApiError('form.invalid.form', 409, {body, errros: ajv.errors});
+            throw new ApiError('form.invalid.form', 409, {body, errors: ajv.errors});
         }
 
         const QUERY = `INSERT INTO response (form_id, form_version, data, source)
                        VALUES ($1, $2, $3, $4)
                        RETURNING *`;
         try {
-            const queryResult = await this.db.query(QUERY, [form.id, form.version, body.data, body.source]);
+            const queryResult = await this.db.query(QUERY, [form.id, form.version, body.data, body.source || null]);
 
             return {
                 responseId: queryResult.rows[0].id
