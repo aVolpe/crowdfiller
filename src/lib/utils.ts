@@ -55,4 +55,9 @@ export function validateIsStringAndNotEmpty(resourceName: string, val: unknown):
     return val;
 }
 
-
+export function validateIsValidJson(resorce: string, val: string): unknown {
+    if (!val || typeof val !== 'string' || val.trim() === '') {
+        throw new ApiError(`invalid.${resorce}`, 409, {val});
+    }
+    return JSON.parse(val);
+}

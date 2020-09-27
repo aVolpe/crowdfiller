@@ -2,10 +2,12 @@ import React from 'react';
 import {GetServerSideProps} from 'next';
 import {FormWithData, PublicFormService} from 'src/lib/services/FormService';
 import {db} from 'src/lib/db';
-import Form from "@rjsf/core";
+import Form, {ISubmitEvent} from "@rjsf/core";
 import {ErrorInfo, getErrorInfo, getFirst, isErrorInfo} from '../../lib/client_utils';
 import Error from 'next/error';
 import Head from 'next/head';
+import {Previewer} from '../components/Previewer';
+import {ApiClient} from '../ApiClient';
 
 type FormPageProps = {
     data: FormWithData | ErrorInfo;
@@ -13,9 +15,25 @@ type FormPageProps = {
 }
 
 export default function FormPage(props: FormPageProps) {
+
+    async function onSubmit(event: ISubmitEvent<unknown>) {
+
+        if (isErrorInfo(props.data)) return;
+
+        if (event.errors.length === 0) {
+            const response = await new ApiClient().sendForm(props.data.id, {
+                data: event.formData,
+                source: props.source
+            })
+            console.log(response);
+        }
+    }
+
+
     if (isErrorInfo(props.data)) {
         return <Error statusCode={props.data.code} title={props.data.msg}/>
     }
+
 
     return <>
         <Head>
@@ -23,17 +41,18 @@ export default function FormPage(props: FormPageProps) {
         </Head>
         <div className="row">
             <div className="col m-3">
-                {props.source}
+                {props.source && <Previewer toPreview={props.source}/>}
             </div>
             <div className="col m-3">
                 <Form schema={props.data.schema}
+                      onSubmit={onSubmit}
                       formData={props.data.data}/>
             </div>
         </div>
         <div className="row">
-           <div className="col">
-               <pre>{JSON.stringify(props.data, null, 2)}</pre>
-           </div>
+            <div className="col">
+                <pre>{JSON.stringify(props.data, null, 2)}</pre>
+            </div>
         </div>
     </>
 }
