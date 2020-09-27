@@ -5,7 +5,8 @@
     "scripts": {
         "dev": "next dev",
         "build": "next build",
-        "start": "next start"
+        "start": "next start",
+        "dbmate": "docker run --rm -it -v \"$(pwd)\"/db:/db -v \"$(pwd)\"/.env:/.env amacneil/dbmate "
     },
     "repository": {
         "type": "git",
